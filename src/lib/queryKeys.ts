@@ -1,0 +1,18 @@
+export const queryKeys = {
+  thai: {
+    settings: ["thai", "settings"] as const,
+    vendors: (p: string) => ["thai", "vendors", p] as const,
+    customers: (p: string) => ["thai", "customers", p] as const,
+    expenses: (p: string) => ["thai", "expenses", p] as const,
+    categories: ["thai", "categories"] as const,
+    products: (p: string) => ["thai", "products", p] as const,
+    invoices: (p: string) => ["thai", "invoices", p] as const,
+    invoice: (id: string) => ["thai", "invoice", id] as const,
+    exchanges: (p: string) => ["thai", "exchanges", p] as const,
+    packageLists: (p: string) => ["thai", "packageLists", p] as const,
+    packageList: (id: string) => ["thai", "packageList", id] as const,
+    packageListNextInvoice: (date: string) => ["thai", "packageListNextInvoice", date] as const,
+    saleReport: (p: string) => ["thai", "saleReport", p] as const,
+    summaryReport: (p: string) => ["thai", "summaryReport", p] as const,
+  },
+};
