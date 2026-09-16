@@ -68,6 +68,10 @@ export const sidebarMenuSections: SidebarSection[] = [
         label: "Customers",
         path: "/customers",
         icon: UserGroupIcon,
+        children: [
+          { label: "All customers", path: "/customers" },
+          { label: "Outstanding", path: "/customers/outstanding" },
+        ],
       },
       {
         label: "Reports",

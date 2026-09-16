@@ -23,6 +23,7 @@ import { DeleteConfirmModal } from "@/components/shared/pos/DeleteConfirmModal";
 import type { ThaiCustomer, ThaiCustomerPayload } from "./customer.hooks";
 import { useThaiCustomerMutations, useThaiCustomers } from "./customer.hooks";
 import { useAppliedSearch } from "@/hooks/useAppliedSearch";
+import { useIsMobileLayout } from "@/hooks/useMediaQuery";
 import { useUrlLimit, useUrlPage } from "@/hooks/useUrlQuery";
 import { PAGE_SIZE, PAGE_SIZE_OPTIONS } from "@/lib/queryConfig";
 import { getApiErrorMessage } from "@/lib/http";
@@ -78,6 +79,7 @@ function CustomerCard({
 }
 
 export function CustomersFlow() {
+  const isMobile = useIsMobileLayout();
   const [searchParams, setSearchParams] = useSearchParams();
   const view = searchParams.get("view") === "grid" ? "grid" : "list";
 
@@ -256,6 +258,7 @@ export function CustomersFlow() {
             </div>
           ) : (
             <>
+              {isMobile ? (
               <PosRecordCardList>
                 {customers.map((customer) => (
                   <PosRecordCard
@@ -291,8 +294,7 @@ export function CustomersFlow() {
                   />
                 ))}
               </PosRecordCardList>
-
-              <div className="hidden md:block">
+              ) : (
                 <PosDataTable>
                   <PosTable>
                     <PosTableHead>
@@ -348,7 +350,7 @@ export function CustomersFlow() {
                     </PosTableBody>
                   </PosTable>
                 </PosDataTable>
-              </div>
+              )}
             </>
           )}
 

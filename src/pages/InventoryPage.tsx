@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/forms/NumberInput";
 import { PageHeader, EmptyState, LoadingState } from "@/components/shared/PageStates";
 import { PosPageShell } from "@/components/shared/pos/PosPageShell";
 import { PosModal } from "@/components/shared/pos/PosModal";
@@ -275,11 +276,11 @@ export function InventoryPage() {
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-muted-foreground">Weight (lb)</label>
-                <Input type="number" value={form.weightLb} onChange={(e) => setForm((p) => ({ ...p, weightLb: Number(e.target.value) }))} />
+                <NumberInput value={form.weightLb} onChange={(weightLb) => setForm((p) => ({ ...p, weightLb }))} min={0} />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-muted-foreground">Stock qty</label>
-                <Input type="number" value={form.stockQty} onChange={(e) => setForm((p) => ({ ...p, stockQty: Number(e.target.value) }))} />
+                <NumberInput value={form.stockQty} onChange={(stockQty) => setForm((p) => ({ ...p, stockQty }))} min={0} />
               </div>
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-muted-foreground">Category</label>

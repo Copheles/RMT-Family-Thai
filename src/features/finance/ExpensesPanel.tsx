@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Plus, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/forms/NumberInput";
 import { EmptyState, LoadingState } from "@/components/shared/PageStates";
 import { StatCard } from "@/components/shared/pos/StatCard";
 import { PosToolbar, PosToolbarActions, PosToolbarGroup } from "@/components/shared/pos/PosToolbar";
@@ -24,6 +25,7 @@ import { PosModal } from "@/components/shared/pos/PosModal";
 import { DeleteConfirmModal } from "@/components/shared/pos/DeleteConfirmModal";
 import { PosSearchBar } from "@/components/shared/pos/PosSearchBar";
 import { useAppliedSearch } from "@/hooks/useAppliedSearch";
+import { useIsMobileLayout } from "@/hooks/useMediaQuery";
 import { useUrlLimit, useUrlPage, useUrlStringParam } from "@/hooks/useUrlQuery";
 import { PAGE_SIZE, PAGE_SIZE_OPTIONS } from "@/lib/queryConfig";
 import { getApiErrorMessage } from "@/lib/http";
@@ -42,6 +44,7 @@ const defaultExpenseForm: ThaiExpensePayload = {
 };
 
 export function ExpensesPanel() {
+  const isMobile = useIsMobileLayout();
   const {
     searchInput,
     setSearchInput,
@@ -190,37 +193,37 @@ export function ExpensesPanel() {
         <EmptyState message="No expenses found." />
       ) : (
         <>
-          <PosRecordCardList>
-            {rows.map((row) => (
-              <PosRecordCard
-                key={row.id}
-                title={row.name}
-                subtitle={formatDate(row.date)}
-                trailing={
-                  <span className="text-sm font-semibold tabular-nums">
-                    {formatMoneyShort(row.price)}
-                  </span>
-                }
-                fields={[]}
-                actions={
-                  <>
-                    <Button size="sm" variant="outline" onClick={() => openEdit(row)}>
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => { setDeleting(row); setDeleteOpen(true); }}
-                    >
-                      Delete
-                    </Button>
-                  </>
-                }
-              />
-            ))}
-          </PosRecordCardList>
-
-          <div className="hidden md:block">
+          {isMobile ? (
+            <PosRecordCardList>
+              {rows.map((row) => (
+                <PosRecordCard
+                  key={row.id}
+                  title={row.name}
+                  subtitle={formatDate(row.date)}
+                  trailing={
+                    <span className="text-sm font-semibold tabular-nums">
+                      {formatMoneyShort(row.price)}
+                    </span>
+                  }
+                  fields={[]}
+                  actions={
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => openEdit(row)}>
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => { setDeleting(row); setDeleteOpen(true); }}
+                      >
+                        Delete
+                      </Button>
+                    </>
+                  }
+                />
+              ))}
+            </PosRecordCardList>
+          ) : (
             <PosDataTable>
               <PosTable>
                 <PosTableHead>
@@ -256,7 +259,7 @@ export function ExpensesPanel() {
                 </PosTableBody>
               </PosTable>
             </PosDataTable>
-          </div>
+          )}
 
           {data?.meta && (
             <PosPaginationFromMeta
@@ -281,12 +284,11 @@ export function ExpensesPanel() {
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground">Price</label>
-              <Input
-                type="number"
+              <NumberInput
                 min={0}
                 step="0.01"
                 value={form.price}
-                onChange={(event) => setForm((prev) => ({ ...prev, price: Number(event.target.value) }))}
+                onChange={(price) => setForm((prev) => ({ ...prev, price }))}
               />
             </div>
             <div className="space-y-1.5">

@@ -5,11 +5,11 @@ import { Package, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/forms/NumberInput";
 import { PosModal } from "@/components/shared/pos/PosModal";
 import {
   computeGrossWeightLb,
   computeNetWeightLb,
-  formatQtyTon,
   formatWeightLb,
   PACKAGE_GROSS_PADDING_LB,
   type PackageCartLine,
@@ -144,12 +144,13 @@ export function PackageCartLines({
                   <FormItem>
                     <FormLabel>No. of packages</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
+                      <NumberInput
                         min={1}
                         step={1}
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        name={field.name}
+                        value={field.value}
+                        onBlur={field.onBlur}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                     <FormMessage />
@@ -164,11 +165,12 @@ export function PackageCartLines({
                     <FormLabel>Qty total (TON)</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         min={0}
-                        step="any"
                         placeholder="e.g. 100"
                         {...field}
+                        value={field.value ?? ""}
                       />
                     </FormControl>
                     <FormMessage />
@@ -182,12 +184,12 @@ export function PackageCartLines({
                   <FormItem>
                     <FormLabel>Gross weight add (LB)</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
+                      <NumberInput
                         min={0}
-                        step="any"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        name={field.name}
+                        value={field.value}
+                        onBlur={field.onBlur}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                     <FormMessage />

@@ -8,7 +8,9 @@ import type {
   ThaiExchange,
   ThaiExpense,
   ThaiInvoice,
+  ThaiOutstandingRow,
   ThaiPaymentType,
+  PaymentStatus,
   ThaiProduct,
   ThaiPackageList,
   ThaiSaleReport,
@@ -184,7 +186,9 @@ export async function listThaiInvoices(
     page?: number;
     limit?: number;
     search?: string;
+    customerId?: string;
     paymentType?: ThaiPaymentType;
+    paymentStatus?: PaymentStatus;
     sortBy?: "createdAt" | "date" | "invoiceNo" | "totalAmount";
     sortOrder?: "asc" | "desc";
   } = {},
@@ -194,7 +198,9 @@ export async function listThaiInvoices(
       page: params.page ?? 1,
       limit: params.limit ?? 20,
       search: params.search,
+      customerId: params.customerId,
       paymentType: params.paymentType,
+      paymentStatus: params.paymentStatus,
       sortBy: params.sortBy,
       sortOrder: params.sortOrder,
     })}`,
@@ -209,6 +215,47 @@ export async function getThaiInvoice(id: string) {
 
 export async function createThaiInvoice(payload: CreateThaiInvoicePayload) {
   const { data } = await axiosClient.post<ApiEnvelope<ThaiInvoice>>("/thai/invoices", payload);
+  return data.data;
+}
+
+export async function listThaiOutstandingInvoices(params: {
+  page?: number;
+  limit?: number;
+  search?: string;
+}) {
+  const { data } = await axiosClient.get<ApiEnvelope<ListResponse<ThaiOutstandingRow>>>(
+    `/thai/invoices/outstanding${qs({
+      page: params.page ?? 1,
+      limit: params.limit ?? 20,
+      search: params.search,
+    })}`,
+  );
+  return data.data;
+}
+
+export async function addThaiInvoicePayment(
+  invoiceId: string,
+  payload: { paymentType: ThaiPaymentType; paidAmount: number; note?: string },
+) {
+  const { data } = await axiosClient.post<ApiEnvelope<ThaiInvoice>>(
+    `/thai/invoices/${invoiceId}/payments`,
+    payload,
+  );
+  return data.data;
+}
+
+export async function refundThaiInvoice(
+  invoiceId: string,
+  payload: {
+    paymentType: ThaiPaymentType;
+    note?: string;
+    items: Array<{ invoiceItemId: string; quantity: number; restock: boolean }>;
+  },
+) {
+  const { data } = await axiosClient.post<ApiEnvelope<ThaiInvoice>>(
+    `/thai/invoices/${invoiceId}/refunds`,
+    payload,
+  );
   return data.data;
 }
 

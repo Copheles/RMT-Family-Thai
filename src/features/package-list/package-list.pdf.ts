@@ -1,4 +1,4 @@
-import jsPDF from "jspdf";
+import type jsPDF from "jspdf";
 import type { ThaiPackageList } from "@/features/thai/thai.types";
 import {
   formatPackages,
@@ -167,6 +167,7 @@ function drawShipCell(
 }
 
 export async function downloadThaiPackageListPdf(list: ThaiPackageList): Promise<void> {
+  const { default: jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4", orientation: "landscape" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -360,7 +361,7 @@ export async function downloadThaiPackageListPdf(list: ThaiPackageList): Promise
   colWidths[colWidths.length - 1] =
     docW - colWidths.slice(0, -1).reduce((a, b) => a + b, 0);
 
-  const colXs = colWidths.reduce<number[]>((acc, w, i) => {
+  const colXs = colWidths.reduce<number[]>((acc, _w, i) => {
     acc.push(i === 0 ? docX : acc[i - 1] + colWidths[i - 1]);
     return acc;
   }, []);

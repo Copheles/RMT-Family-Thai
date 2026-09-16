@@ -21,6 +21,7 @@ import { downloadThaiPackageListPdf } from "@/features/package-list/package-list
 import { getThaiPackageList, listThaiPackageLists } from "@/features/thai/thai.api";
 import type { ThaiPackageList } from "@/features/thai/thai.types";
 import { useAppliedSearch } from "@/hooks/useAppliedSearch";
+import { useIsMobileLayout } from "@/hooks/useMediaQuery";
 import { useUrlLimit, useUrlPage } from "@/hooks/useUrlQuery";
 import { formatDate } from "@/lib/format";
 import {
@@ -32,7 +33,7 @@ import {
   listTotalQtyLabel,
   parseQtyTon,
 } from "@/lib/packageCart";
-import { PAGE_SIZE, PAGE_SIZE_OPTIONS } from "@/lib/queryConfig";
+import { PAGE_SIZE_OPTIONS } from "@/lib/queryConfig";
 import { queryKeys } from "@/lib/queryKeys";
 import { Link, useSearchParams } from "react-router-dom";
 
@@ -41,6 +42,7 @@ async function downloadPackageListPdf(list: ThaiPackageList): Promise<void> {
 }
 
 export function PackageListsPage() {
+  const isMobile = useIsMobileLayout();
   const [searchParams, setSearchParams] = useSearchParams();
   const { toasts, showToast, dismiss } = usePosToast();
   const handledCreatedRef = useRef<string | null>(null);
@@ -134,33 +136,33 @@ export function PackageListsPage() {
         <EmptyState message="No packing lists yet." />
       ) : (
         <>
-          <PosRecordCardList className="md:hidden">
-            {rows.map((row) => (
-              <PosRecordCard
-                key={row.id}
-                title={row.listNo}
-                subtitle={row.consigneeName}
-                fields={[
-                  { label: "Date", value: formatDate(row.date) },
-                  { label: "Invoice", value: row.invoiceNo ?? "—" },
-                  { label: "Total qty", value: listTotalQtyLabel(row) },
-                  { label: "Gross", value: formatWeightLb(row.totalGrossWeightLb) },
-                ]}
-                actions={
-                  <>
-                    <Button size="sm" variant="outline" onClick={() => setSelectedId(row.id)}>
-                      View
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => void downloadPackageListPdf(row)}>
-                      PDF
-                    </Button>
-                  </>
-                }
-              />
-            ))}
-          </PosRecordCardList>
-
-          <div className="hidden md:block">
+          {isMobile ? (
+            <PosRecordCardList>
+              {rows.map((row) => (
+                <PosRecordCard
+                  key={row.id}
+                  title={row.listNo}
+                  subtitle={row.consigneeName}
+                  fields={[
+                    { label: "Date", value: formatDate(row.date) },
+                    { label: "Invoice", value: row.invoiceNo ?? "—" },
+                    { label: "Total qty", value: listTotalQtyLabel(row) },
+                    { label: "Gross", value: formatWeightLb(row.totalGrossWeightLb) },
+                  ]}
+                  actions={
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => setSelectedId(row.id)}>
+                        View
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => void downloadPackageListPdf(row)}>
+                        PDF
+                      </Button>
+                    </>
+                  }
+                />
+              ))}
+            </PosRecordCardList>
+          ) : (
             <PosDataTable>
               <PosTable>
                 <PosTableHead>
@@ -198,7 +200,7 @@ export function PackageListsPage() {
                 </PosTableBody>
               </PosTable>
             </PosDataTable>
-          </div>
+          )}
 
           {data?.meta && (
             <PosPaginationFromMeta

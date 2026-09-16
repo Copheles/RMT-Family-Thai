@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Minus, Pencil, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/forms/NumberInput";
 import { Textarea } from "@/components/ui/textarea";
 import { PosModal } from "@/components/shared/pos/PosModal";
 import { formatMoneyShort } from "@/lib/format";
@@ -197,11 +197,12 @@ export function SaleCartLines({
                   <FormItem>
                     <FormLabel>Quantity</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
+                      <NumberInput
                         min={1}
-                        {...field}
-                        onChange={(event) => field.onChange(Number(event.target.value))}
+                        name={field.name}
+                        value={field.value}
+                        onBlur={field.onBlur}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                     <FormMessage />
@@ -215,12 +216,13 @@ export function SaleCartLines({
                   <FormItem>
                     <FormLabel>Unit price</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
+                      <NumberInput
                         min={0}
                         step="0.01"
-                        {...field}
-                        onChange={(event) => field.onChange(Number(event.target.value))}
+                        name={field.name}
+                        value={field.value}
+                        onBlur={field.onBlur}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                     <FormMessage />

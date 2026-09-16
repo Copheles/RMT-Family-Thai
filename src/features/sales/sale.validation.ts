@@ -26,6 +26,7 @@ export const invoiceDetailsSchema = z.object({
   discountAmount: z.number().min(0),
   deliveryFee: z.number().min(0),
   paymentType: z.enum(["CASH", "DEBIT", "CREDIT", "CHECK", "ZELLE"]),
+  paymentStatus: z.enum(["PAID", "DEBIT"]),
   notes: z.string(),
 });
 

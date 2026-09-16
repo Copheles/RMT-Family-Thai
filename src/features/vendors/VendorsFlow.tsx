@@ -20,6 +20,7 @@ import { PosPaginationFromMeta } from "@/components/shared/pos/PosPagination";
 import { PosModal } from "@/components/shared/pos/PosModal";
 import { DeleteConfirmModal } from "@/components/shared/pos/DeleteConfirmModal";
 import { useAppliedSearch } from "@/hooks/useAppliedSearch";
+import { useIsMobileLayout } from "@/hooks/useMediaQuery";
 import { useUrlLimit, useUrlPage } from "@/hooks/useUrlQuery";
 import { PAGE_SIZE, PAGE_SIZE_OPTIONS } from "@/lib/queryConfig";
 import { getApiErrorMessage } from "@/lib/http";
@@ -35,6 +36,7 @@ const emptyForm: ThaiVendorPayload = {
 };
 
 export function VendorsFlow() {
+  const isMobile = useIsMobileLayout();
   const {
     searchInput,
     setSearchInput,
@@ -149,39 +151,39 @@ export function VendorsFlow() {
         <EmptyState message="No vendors found." />
       ) : (
         <>
-          <PosRecordCardList>
-            {vendors.map((vendor) => (
-              <PosRecordCard
-                key={vendor.id}
-                title={vendor.name}
-                subtitle={vendor.phone || vendor.companyNo || "—"}
-                fields={[
-                  { label: "Email", value: vendor.email || "—" },
-                  { label: "Address", value: vendor.address || "—" },
-                ]}
-                actions={
-                  <>
-                    <Button size="sm" variant="outline" onClick={() => openEdit(vendor)}>
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-destructive/30 text-destructive hover:bg-destructive/10"
-                      onClick={() => {
-                        setDeleting(vendor);
-                        setDeleteOpen(true);
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </>
-                }
-              />
-            ))}
-          </PosRecordCardList>
-
-          <div className="hidden md:block">
+          {isMobile ? (
+            <PosRecordCardList>
+              {vendors.map((vendor) => (
+                <PosRecordCard
+                  key={vendor.id}
+                  title={vendor.name}
+                  subtitle={vendor.phone || vendor.companyNo || "—"}
+                  fields={[
+                    { label: "Email", value: vendor.email || "—" },
+                    { label: "Address", value: vendor.address || "—" },
+                  ]}
+                  actions={
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => openEdit(vendor)}>
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                        onClick={() => {
+                          setDeleting(vendor);
+                          setDeleteOpen(true);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </>
+                  }
+                />
+              ))}
+            </PosRecordCardList>
+          ) : (
             <PosDataTable>
               <PosTable>
                 <PosTableHead>
@@ -225,7 +227,7 @@ export function VendorsFlow() {
                 </PosTableBody>
               </PosTable>
             </PosDataTable>
-          </div>
+          )}
 
           {data?.meta ? (
             <PosPaginationFromMeta

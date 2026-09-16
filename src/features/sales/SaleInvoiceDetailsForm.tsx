@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useForm, type UseFormReturn } from "react-hook-form";
+import { useForm, useWatch, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/forms/NumberInput";
 import { Textarea } from "@/components/ui/textarea";
 import { CustomerCombobox } from "@/components/shared/pos/CustomerCombobox";
 import { PosDatePicker } from "@/components/shared/pos/PosDatePicker";
@@ -22,6 +23,10 @@ import {
 } from "./sale.validation";
 
 const PAYMENT_TYPES: ThaiPaymentType[] = ["DEBIT", "CREDIT", "CHECK", "CASH", "ZELLE"];
+const PAYMENT_STATUSES = [
+  { value: "PAID", label: "Paid" },
+  { value: "DEBIT", label: "Debit" },
+] as const;
 
 const PARTY_FIELDS = [
   { key: "name", label: "Name" },
@@ -87,17 +92,18 @@ export function SaleInvoiceDetailsForm({
       discountAmount: 0,
       deliveryFee: 0,
       paymentType: "CASH",
+      paymentStatus: "PAID",
       notes: "",
     },
   });
 
-  const watched = form.watch();
+  const [taxAmount, discountAmount, deliveryFee] = useWatch({
+    control: form.control,
+    name: ["taxAmount", "discountAmount", "deliveryFee"],
+  });
   const subtotal = getCartSubtotal(cart);
   const totalAmount =
-    subtotal +
-    (watched.taxAmount ?? 0) +
-    (watched.deliveryFee ?? 0) -
-    (watched.discountAmount ?? 0);
+    subtotal + (taxAmount ?? 0) + (deliveryFee ?? 0) - (discountAmount ?? 0);
 
   function handleCustomerChange(customerId: string, customer: ThaiCustomer | null) {
     form.setValue("customerId", customerId, { shouldValidate: true });
@@ -323,13 +329,14 @@ export function SaleInvoiceDetailsForm({
                       <div className="flex items-center justify-between gap-3">
                         <FormLabel className="mb-0">Tax</FormLabel>
                         <FormControl>
-                          <Input
+                          <NumberInput
                             className="h-8 w-28 text-right"
-                            type="number"
                             min={0}
                             step="0.01"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            name={field.name}
+                            value={field.value}
+                            onBlur={field.onBlur}
+                            onChange={field.onChange}
                           />
                         </FormControl>
                       </div>
@@ -345,13 +352,14 @@ export function SaleInvoiceDetailsForm({
                       <div className="flex items-center justify-between gap-3">
                         <FormLabel className="mb-0">Dis</FormLabel>
                         <FormControl>
-                          <Input
+                          <NumberInput
                             className="h-8 w-28 text-right"
-                            type="number"
                             min={0}
                             step="0.01"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            name={field.name}
+                            value={field.value}
+                            onBlur={field.onBlur}
+                            onChange={field.onChange}
                           />
                         </FormControl>
                       </div>
@@ -367,13 +375,14 @@ export function SaleInvoiceDetailsForm({
                       <div className="flex items-center justify-between gap-3">
                         <FormLabel className="mb-0">Delivery</FormLabel>
                         <FormControl>
-                          <Input
+                          <NumberInput
                             className="h-8 w-28 text-right"
-                            type="number"
                             min={0}
                             step="0.01"
-                            {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            name={field.name}
+                            value={field.value}
+                            onBlur={field.onBlur}
+                            onChange={field.onChange}
                           />
                         </FormControl>
                       </div>
@@ -391,14 +400,47 @@ export function SaleInvoiceDetailsForm({
             </section>
           </div>
 
-          {/* Payment type */}
+          {/* Payment */}
           <section className="space-y-3 rounded-xl border border-border/70 bg-card p-4">
-            <h2 className="text-sm font-semibold">Payment type</h2>
+            <h2 className="text-sm font-semibold">Payment</h2>
+            <FormField
+              control={form.control}
+              name="paymentStatus"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <FormControl>
+                    <div className="flex flex-wrap gap-2">
+                      {PAYMENT_STATUSES.map((status) => {
+                        const selected = field.value === status.value;
+                        return (
+                          <button
+                            key={status.value}
+                            type="button"
+                            onClick={() => field.onChange(status.value)}
+                            className={cn(
+                              "inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+                              selected
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-border/70 text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                            )}
+                          >
+                            {status.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="paymentType"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>Type</FormLabel>
                   <FormControl>
                     <div className="flex flex-wrap gap-2">
                       {PAYMENT_TYPES.map((type) => {
@@ -446,9 +488,9 @@ export function SaleInvoiceDetailsForm({
           <div className="min-w-0 text-sm">
             <p className="text-muted-foreground">
               Subtotal {formatMoneyShort(subtotal)}
-              {(watched.taxAmount ?? 0) > 0 ||
-              (watched.deliveryFee ?? 0) > 0 ||
-              (watched.discountAmount ?? 0) > 0
+              {(taxAmount ?? 0) > 0 ||
+              (deliveryFee ?? 0) > 0 ||
+              (discountAmount ?? 0) > 0
                 ? " · fees applied"
                 : ""}
             </p>

@@ -3,12 +3,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Loader2, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
-import { EmptyState, ErrorState, LoadingState, PageHeader } from "@/components/shared/PageStates";
+import { EmptyState, ErrorState, LoadingState } from "@/components/shared/PageStates";
 import { PosPageShell } from "@/components/shared/pos/PosPageShell";
 import { PosFilterTabs } from "@/components/shared/pos/PosFilterTabs";
 import { PosSearchBar } from "@/components/shared/pos/PosSearchBar";
-import { SaleProductCard } from "@/components/shared/pos/SaleProductCard";
 import { PosToaster, usePosToast } from "@/components/shared/pos/PosToast";
+import { SaleProductGrid } from "@/features/sales/SaleProductGrid";
 import { SaleCartLines } from "@/features/sales/SaleCartLines";
 import { SaleInvoiceDetailsForm } from "@/features/sales/SaleInvoiceDetailsForm";
 import { SaleSuccessScreen } from "@/features/sales/SaleSuccessScreen";
@@ -20,6 +20,7 @@ import {
 } from "@/features/thai/thai.api";
 import type { ThaiInvoice, ThaiProduct } from "@/features/thai/thai.types";
 import { useAppliedSearch } from "@/hooks/useAppliedSearch";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   useUrlEnumParam,
   useUrlLimit,
@@ -28,7 +29,7 @@ import {
   useUrlStringParam,
 } from "@/hooks/useUrlQuery";
 import { useSaleLayoutResize } from "@/hooks/usePointerResize";
-import { STOCK_STATUS_FILTERS, type StockStatusFilter } from "@/lib/listFilters";
+import { STOCK_STATUS_FILTERS, stockStatusToApi, type StockStatusFilter } from "@/lib/listFilters";
 import { getApiErrorMessage } from "@/lib/http";
 import { formatMoneyShort } from "@/lib/format";
 import { PAGE_SIZE, PAGE_SIZE_OPTIONS } from "@/lib/queryConfig";
@@ -46,13 +47,6 @@ import { resetUrlPage, writeUrlString } from "@/lib/urlQuery";
 import { cn } from "@/lib/utils";
 
 type SaleStep = "products" | "details" | "success";
-
-function matchesStockFilter(product: ThaiProduct, filter: StockStatusFilter): boolean {
-  if (filter === "ALL") return true;
-  if (filter === "OUT_OF_STOCK") return product.stockQty <= 0;
-  if (filter === "LOW_STOCK") return product.stockQty > 0 && product.stockQty <= 5;
-  return product.stockQty > 0;
-}
 
 function stockFilterLabel(value: StockStatusFilter): string {
   switch (value) {
@@ -96,6 +90,9 @@ export function SalesPage() {
   const [cart, setCart] = useState<ThaiCartLine[]>(() => loadPersistedCart());
   const cartRef = useRef(cart);
   cartRef.current = cart;
+  const debouncedCart = useDebouncedValue(cart, 400);
+  const productScrollRef = useRef<HTMLDivElement>(null);
+  const productsByIdRef = useRef(new Map<string, ThaiProduct>());
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<"products" | "cart">("products");
   const [allProducts, setAllProducts] = useState<ThaiProduct[]>([]);
@@ -121,6 +118,7 @@ export function SalesPage() {
       limit: productLimit,
       search: appliedSearch,
       categoryId,
+      stockStatus: stockStatusToApi(stockFilter),
     }),
   );
 
@@ -132,12 +130,13 @@ export function SalesPage() {
         limit: productLimit,
         search: appliedSearch || undefined,
         categoryId: categoryId || undefined,
+        stockStatus: stockStatusToApi(stockFilter),
       }),
   });
 
   useEffect(() => {
-    persistCart(cart);
-  }, [cart]);
+    persistCart(debouncedCart);
+  }, [debouncedCart]);
 
   useEffect(() => {
     function handleClearCartEvent() {
@@ -152,10 +151,13 @@ export function SalesPage() {
 
   useEffect(() => {
     setAllProducts([]);
-  }, [appliedSearch, categoryId, productLimit]);
+  }, [appliedSearch, categoryId, productLimit, stockFilter]);
 
   useEffect(() => {
     if (!productsQuery.data || productsQuery.isFetching) return;
+    for (const product of productsQuery.data.data) {
+      productsByIdRef.current.set(product.id, product);
+    }
     setAllProducts((prev) => {
       if (productPage === 1) return productsQuery.data.data;
       const existingIds = new Set(prev.map((p) => p.id));
@@ -163,11 +165,6 @@ export function SalesPage() {
       return [...prev, ...next];
     });
   }, [productsQuery.data, productsQuery.isFetching, productPage]);
-
-  const visibleProducts = useMemo(
-    () => allProducts.filter((p) => matchesStockFilter(p, stockFilter)),
-    [allProducts, stockFilter],
-  );
 
   const stockByProductId = useMemo(() => {
     const map = new Map<string, number>();
@@ -199,6 +196,7 @@ export function SalesPage() {
       setSubmitError("");
       qc.invalidateQueries({ queryKey: ["thai", "products"] });
       qc.invalidateQueries({ queryKey: ["thai", "invoices"] });
+      qc.invalidateQueries({ queryKey: ["thai", "customers"] });
       showToast("success", "Invoice created");
     },
     onError: (error) => {
@@ -207,8 +205,11 @@ export function SalesPage() {
     },
   });
 
-  const addProductToCart = useCallback(
-    (product: ThaiProduct) => {
+  const handleAddProductById = useCallback(
+    (productId: string) => {
+      const product = productsByIdRef.current.get(productId);
+      if (!product) return;
+
       const { lines, result } = tryAddToCart(cartRef.current, product);
       cartRef.current = lines;
       setCart(lines);
@@ -312,6 +313,7 @@ export function SalesPage() {
       discountAmount: values.discountAmount,
       deliveryFee: values.deliveryFee,
       paymentType: values.paymentType,
+      paymentStatus: values.paymentStatus,
       notes: values.notes,
       items: cart.map((line) => ({
         productId: line.productId,
@@ -568,7 +570,10 @@ export function SalesPage() {
                 <PosFilterTabs
                   value={stockFilter}
                   options={STOCK_STATUS_FILTERS}
-                  onChange={(value) => setStockFilter(value)}
+                  onChange={(value) => {
+                    setStockFilter(value);
+                    setAllProducts([]);
+                  }}
                   getLabel={stockFilterLabel}
                   align="end"
                   className="ml-auto"
@@ -577,26 +582,20 @@ export function SalesPage() {
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
+          <div ref={productScrollRef} className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
             {productsQuery.isLoading && allProducts.length === 0 ? (
               <LoadingState label="Loading products…" />
             ) : productsQuery.isError ? (
               <ErrorState message={getApiErrorMessage(productsQuery.error)} />
-            ) : visibleProducts.length === 0 ? (
+            ) : allProducts.length === 0 ? (
               <EmptyState message="No products. Try a different search or category filter." />
             ) : (
               <>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4">
-                  {visibleProducts.map((product) => (
-                    <SaleProductCard
-                      key={product.id}
-                      name={product.name}
-                      stockQty={product.stockQty}
-                      sku={product.productCode}
-                      onAdd={() => addProductToCart(product)}
-                    />
-                  ))}
-                </div>
+                <SaleProductGrid
+                  products={allProducts}
+                  scrollRef={productScrollRef}
+                  onAdd={handleAddProductById}
+                />
 
                 {hasMoreProducts && (
                   <div className="mt-4 flex justify-center">

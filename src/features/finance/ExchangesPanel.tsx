@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Plus, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NumberInput } from "@/components/forms/NumberInput";
 import { Select } from "@/components/ui/select";
 import { EmptyState, LoadingState } from "@/components/shared/PageStates";
 import { StatCard } from "@/components/shared/pos/StatCard";
@@ -25,6 +26,7 @@ import { PosModal } from "@/components/shared/pos/PosModal";
 import { DeleteConfirmModal } from "@/components/shared/pos/DeleteConfirmModal";
 import { PosSearchBar } from "@/components/shared/pos/PosSearchBar";
 import { useAppliedSearch } from "@/hooks/useAppliedSearch";
+import { useIsMobileLayout } from "@/hooks/useMediaQuery";
 import {
   useUrlEnumParam,
   useUrlLimit,
@@ -55,6 +57,7 @@ const exchangeTypes: ExchangeType[] = ["IMPORT", "EXPORT", "OTHER"];
 const EXCHANGE_TYPE_FILTERS = ["ALL", "IMPORT", "EXPORT", "OTHER"] as const;
 
 export function ExchangesPanel() {
+  const isMobile = useIsMobileLayout();
   const {
     searchInput,
     setSearchInput,
@@ -205,41 +208,41 @@ export function ExchangesPanel() {
         <EmptyState message="No exchange records found." />
       ) : (
         <>
-          <PosRecordCardList>
-            {rows.map((row) => (
-              <PosRecordCard
-                key={row.id}
-                title={row.name}
-                subtitle={`${row.senderName} → ${row.receiverName}`}
-                trailing={
-                  <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
-                    {row.type}
-                  </span>
-                }
-                fields={[
-                  { label: "Amount", value: formatMoneyShort(row.amountMmk) },
-                  { label: "Rate", value: row.rateMmkPerUsd },
-                  { label: "Date", value: formatDate(row.date) },
-                ]}
-                actions={
-                  <>
-                    <Button size="sm" variant="outline" onClick={() => openEdit(row)}>
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => { setDeleting(row); setDeleteOpen(true); }}
-                    >
-                      Delete
-                    </Button>
-                  </>
-                }
-              />
-            ))}
-          </PosRecordCardList>
-
-          <div className="hidden md:block">
+          {isMobile ? (
+            <PosRecordCardList>
+              {rows.map((row) => (
+                <PosRecordCard
+                  key={row.id}
+                  title={row.name}
+                  subtitle={`${row.senderName} → ${row.receiverName}`}
+                  trailing={
+                    <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                      {row.type}
+                    </span>
+                  }
+                  fields={[
+                    { label: "Amount", value: formatMoneyShort(row.amountMmk) },
+                    { label: "Rate", value: row.rateMmkPerUsd },
+                    { label: "Date", value: formatDate(row.date) },
+                  ]}
+                  actions={
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => openEdit(row)}>
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => { setDeleting(row); setDeleteOpen(true); }}
+                      >
+                        Delete
+                      </Button>
+                    </>
+                  }
+                />
+              ))}
+            </PosRecordCardList>
+          ) : (
             <PosDataTable>
               <PosTable>
                 <PosTableHead>
@@ -285,7 +288,7 @@ export function ExchangesPanel() {
                 </PosTableBody>
               </PosTable>
             </PosDataTable>
-          </div>
+          )}
 
           {data?.meta && (
             <PosPaginationFromMeta
@@ -312,22 +315,20 @@ export function ExchangesPanel() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground">Amount</label>
-                <Input
-                  type="number"
+                <NumberInput
                   min={0}
                   step="0.01"
                   value={form.amountMmk}
-                  onChange={(event) => setForm((prev) => ({ ...prev, amountMmk: Number(event.target.value) }))}
+                  onChange={(amountMmk) => setForm((prev) => ({ ...prev, amountMmk }))}
                 />
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-muted-foreground">Rate (per USD)</label>
-                <Input
-                  type="number"
+                <NumberInput
                   min={0}
                   step="0.01"
                   value={form.rateMmkPerUsd}
-                  onChange={(event) => setForm((prev) => ({ ...prev, rateMmkPerUsd: Number(event.target.value) }))}
+                  onChange={(rateMmkPerUsd) => setForm((prev) => ({ ...prev, rateMmkPerUsd }))}
                 />
               </div>
             </div>

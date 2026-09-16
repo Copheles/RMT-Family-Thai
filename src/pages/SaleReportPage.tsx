@@ -21,6 +21,7 @@ import { StatCard } from "@/components/shared/pos/StatCard";
 import { PosToolbar, PosToolbarGroup } from "@/components/shared/pos/PosToolbar";
 import { RankBadge } from "@/components/shared/pos/ReportHelpers";
 import { getThaiSaleReport } from "@/features/thai/thai.api";
+import { useIsMobileLayout } from "@/hooks/useMediaQuery";
 import { formatMoneyShort, todayISO } from "@/lib/format";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -33,6 +34,7 @@ function dayEndIso(date: string): string {
 }
 
 export function SaleReportPage() {
+  const isMobile = useIsMobileLayout();
   const [fromDate, setFromDate] = useState(todayISO());
   const [toDate, setToDate] = useState(todayISO());
 
@@ -113,26 +115,26 @@ export function SaleReportPage() {
             <EmptyState message="No product sales in this date range." />
           ) : (
             <>
-              <PosRecordCardList>
-                {products.map((row, index) => {
-                  const rank = index + 1;
-                  return (
-                    <PosRecordCard
-                      key={row.productId}
-                      title={row.name}
-                      leading={<RankBadge rank={rank} />}
-                      fields={[
-                        { label: "Qty", value: row.qty },
-                        { label: "Gross", value: formatMoneyShort(row.gross) },
-                        { label: "Net", value: formatMoneyShort(row.net) },
-                        { label: "Profit", value: formatMoneyShort(row.profit) },
-                      ]}
-                    />
-                  );
-                })}
-              </PosRecordCardList>
-
-              <div className="hidden md:block">
+              {isMobile ? (
+                <PosRecordCardList>
+                  {products.map((row, index) => {
+                    const rank = index + 1;
+                    return (
+                      <PosRecordCard
+                        key={row.productId}
+                        title={row.name}
+                        leading={<RankBadge rank={rank} />}
+                        fields={[
+                          { label: "Qty", value: row.qty },
+                          { label: "Gross", value: formatMoneyShort(row.gross) },
+                          { label: "Net", value: formatMoneyShort(row.net) },
+                          { label: "Profit", value: formatMoneyShort(row.profit) },
+                        ]}
+                      />
+                    );
+                  })}
+                </PosRecordCardList>
+              ) : (
                 <PosDataTable>
                   <PosTable>
                     <PosTableHead>
@@ -170,7 +172,7 @@ export function SaleReportPage() {
                     </PosTableBody>
                   </PosTable>
                 </PosDataTable>
-              </div>
+              )}
             </>
           )}
         </>

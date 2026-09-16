@@ -1,6 +1,7 @@
 import type { PaginatedResult } from "@/types/api";
 
 export type ThaiPaymentType = "DEBIT" | "CREDIT" | "CHECK" | "CASH" | "ZELLE";
+export type PaymentStatus = "PAID" | "DEBIT";
 export type ExchangeType = "IMPORT" | "EXPORT" | "OTHER";
 
 export interface ThaiSettings {
@@ -66,6 +67,33 @@ export interface ThaiInvoiceItem {
   product: { id: string; name: string; barcode: string; productCode: string };
 }
 
+export interface ThaiInvoicePayment {
+  id: string;
+  paymentType: ThaiPaymentType;
+  paidAmount: number;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface ThaiInvoiceRefundItem {
+  id: string;
+  invoiceItemId: string;
+  productId: string;
+  quantity: number;
+  unitRefundAmount: number;
+  lineRefundAmount: number;
+  restock: boolean;
+}
+
+export interface ThaiInvoiceRefund {
+  id: string;
+  paymentType: ThaiPaymentType;
+  amount: number;
+  note: string | null;
+  createdAt: string;
+  items: ThaiInvoiceRefundItem[];
+}
+
 export interface ThaiInvoice {
   id: string;
   invoiceNo: string;
@@ -95,8 +123,27 @@ export interface ThaiInvoice {
   deliveryFee: number;
   totalAmount: number;
   paymentType: ThaiPaymentType;
+  paymentStatus?: PaymentStatus;
+  paidTotal?: number;
+  refundedTotal?: number;
+  balanceDue?: number;
   notes: string | null;
   items: ThaiInvoiceItem[];
+  payments?: ThaiInvoicePayment[];
+  refunds?: ThaiInvoiceRefund[];
+}
+
+export interface ThaiOutstandingRow {
+  customer: { id: string; name: string; phone: string };
+  invoice: {
+    id: string;
+    invoiceNo: string;
+    totalAmount: number;
+    paidTotal: number;
+    refundedTotal: number;
+    balanceDue: number;
+    createdAt: string;
+  };
 }
 
 export interface CreateThaiInvoicePayload {
@@ -118,6 +165,7 @@ export interface CreateThaiInvoicePayload {
   discountAmount?: number;
   deliveryFee?: number;
   paymentType: ThaiPaymentType;
+  paymentStatus: PaymentStatus;
   notes?: string;
   items: Array<{
     productId: string;

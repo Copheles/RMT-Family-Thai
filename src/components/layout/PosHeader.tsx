@@ -18,7 +18,7 @@ import { useFullscreen } from "@/hooks/useFullscreen";
 import { useTheme } from "@/components/layout/ThemeProvider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { logout } from "@/redux/slices/authSlice";
+import { performLogout } from "@/components/auth/AuthBootstrap";
 import { useAppDispatch } from "@/redux/hooks";
 
 function HeaderIconButton({
@@ -102,6 +102,7 @@ export function PosHeader() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const showBreadcrumb = location.pathname !== "/dashboard";
+  const showSettings = user?.role === "super_admin";
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -122,10 +123,10 @@ export function PosHeader() {
     else setTheme("light");
   }
 
-  function handleLogout() {
-    dispatch(logout());
-    navigate("/login");
+  async function handleLogout() {
     setIsProfileOpen(false);
+    await performLogout(dispatch);
+    navigate("/login");
   }
 
   const initials = user?.username
@@ -163,12 +164,14 @@ export function PosHeader() {
           </div>
 
           <div className="flex shrink-0 items-center gap-1">
-            <HeaderIconButton
-              title="Settings"
-              onClick={() => navigate("/settings")}
-            >
-              <Settings className="size-4" />
-            </HeaderIconButton>
+            {showSettings && (
+              <HeaderIconButton
+                title="Settings"
+                onClick={() => navigate("/settings")}
+              >
+                <Settings className="size-4" />
+              </HeaderIconButton>
+            )}
 
             <HeaderIconButton
               title={themeLabel}
@@ -239,14 +242,16 @@ export function PosHeader() {
                   <div className="my-1 h-px bg-border" />
 
                   <div className="py-0.5">
-                    <ProfileMenuItem
-                      icon={Settings}
-                      label="Settings"
-                      onClick={() => {
-                        navigate("/settings");
-                        setIsProfileOpen(false);
-                      }}
-                    />
+                    {showSettings && (
+                      <ProfileMenuItem
+                        icon={Settings}
+                        label="Settings"
+                        onClick={() => {
+                          navigate("/settings");
+                          setIsProfileOpen(false);
+                        }}
+                      />
+                    )}
                     <ProfileMenuItem
                       icon={HelpCircle}
                       label="Help Center"

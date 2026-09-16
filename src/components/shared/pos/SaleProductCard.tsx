@@ -1,15 +1,18 @@
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 
 interface SaleProductCardProps {
+  productId: string;
   name: string;
   /** When omitted or 0, shows "Set in cart" instead of a price. */
   price?: number;
   stockQty: number;
   sku?: string;
-  onAdd: () => void;
+  onAdd: (productId: string) => void;
 }
 
-export function SaleProductCard({
+export const SaleProductCard = memo(function SaleProductCard({
+  productId,
   name,
   price,
   stockQty,
@@ -26,7 +29,7 @@ export function SaleProductCard({
     <button
       type="button"
       disabled={!inStock}
-      onClick={onAdd}
+      onClick={() => onAdd(productId)}
       className={cn(
         "group flex min-h-[120px] flex-col rounded-xl border p-3 text-left transition-[border-color,background-color,box-shadow] duration-150 lg:min-h-[132px] lg:p-3.5 xl:min-h-[140px] xl:p-4",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25",
@@ -83,4 +86,4 @@ export function SaleProductCard({
       </div>
     </button>
   );
-}
+});

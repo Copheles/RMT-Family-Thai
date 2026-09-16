@@ -46,7 +46,7 @@ export function useThaiExchanges(filters: ThaiExchangeFilters) {
   });
 }
 
-export function useThaiExchangeMutations(filters: ThaiExchangeFilters) {
+export function useThaiExchangeMutations(_filters: ThaiExchangeFilters) {
   const queryClient = useQueryClient();
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ["thai", "exchanges"] });

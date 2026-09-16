@@ -1,4 +1,4 @@
-import jsPDF from "jspdf";
+import type jsPDF from "jspdf";
 import type { ThaiInvoice, ThaiPaymentType } from "@/features/thai/thai.types";
 
 const LOGO_PATH = "/rmt-family.png";
@@ -66,6 +66,7 @@ function partyLines(party: {
 }
 
 export async function downloadThaiInvoicePdf(invoice: ThaiInvoice): Promise<void> {
+  const { default: jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const left = 42;
@@ -169,7 +170,6 @@ export async function downloadThaiInvoicePdf(invoice: ThaiInvoice): Promise<void
   const desW = contentWidth * 0.28;
   const qtyW = contentWidth * 0.12;
   const unitW = contentWidth * 0.16;
-  const totalW = contentWidth * 0.16;
   const rowH = 20;
   const headerH = 22;
 

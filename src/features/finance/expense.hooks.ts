@@ -44,7 +44,7 @@ export function useThaiExpenses(filters: ThaiExpenseFilters) {
   });
 }
 
-export function useThaiExpenseMutations(filters: ThaiExpenseFilters) {
+export function useThaiExpenseMutations(_filters: ThaiExpenseFilters) {
   const queryClient = useQueryClient();
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ["thai", "expenses"] });

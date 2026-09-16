@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { PageHeader, EmptyState, LoadingState, ErrorState } from "@/components/shared/PageStates";
@@ -18,7 +19,21 @@ import { PosPaginationFromMeta } from "@/components/shared/pos/PosPagination";
 import { PosModal } from "@/components/shared/pos/PosModal";
 import { PosSearchBar } from "@/components/shared/pos/PosSearchBar";
 import { downloadThaiInvoicePdf } from "@/features/invoices/invoice.pdf";
-import { useThaiInvoice, useThaiInvoices } from "@/features/invoices/invoice.hooks";
+import {
+  useAddThaiInvoicePayment,
+  useRefundThaiInvoice,
+  useThaiInvoice,
+  useThaiInvoices,
+} from "@/features/invoices/invoice.hooks";
+import {
+  getRefundableThaiItems,
+  ThaiAddPaymentModal,
+  ThaiInvoicePaymentHistory,
+  ThaiInvoiceRefundHistory,
+  ThaiInvoiceSettlementSummary,
+  ThaiRefundModal,
+} from "@/features/invoices/invoice-settlement";
+import { PosToaster, usePosToast } from "@/components/shared/pos/PosToast";
 import type { ThaiInvoiceListFilters } from "@/features/invoices/invoice.hooks";
 import { formatDate, formatMoneyShort } from "@/lib/format";
 import {
@@ -28,6 +43,7 @@ import {
 } from "@/lib/listFilters";
 import { PAGE_SIZE, PAGE_SIZE_OPTIONS } from "@/lib/queryConfig";
 import { useAppliedSearch } from "@/hooks/useAppliedSearch";
+import { useIsMobileLayout } from "@/hooks/useMediaQuery";
 import {
   useUrlEnumParam,
   useUrlLimit,
@@ -53,6 +69,9 @@ function paymentTypeLabel(value: ThaiPaymentTypeFilter): string {
 }
 
 export function InvoicesPage() {
+  const isMobile = useIsMobileLayout();
+  const [searchParams] = useSearchParams();
+  const customerIdFilter = searchParams.get("customerId") ?? undefined;
   const {
     searchInput,
     setSearchInput,
@@ -85,11 +104,12 @@ export function InvoicesPage() {
       page,
       limit,
       search: appliedSearch || undefined,
+      customerId: customerIdFilter,
       paymentType: thaiPaymentTypeToApi(paymentType),
       sortBy,
       sortOrder,
     }),
-    [page, limit, appliedSearch, paymentType, sortBy, sortOrder],
+    [page, limit, appliedSearch, customerIdFilter, paymentType, sortBy, sortOrder],
   );
 
   const { data, isLoading, isError } = useThaiInvoices(filters);
@@ -169,41 +189,41 @@ export function InvoicesPage() {
         <EmptyState message="No invoices found." />
       ) : (
         <>
-          <PosRecordCardList className="md:hidden">
-            {rows.map((invoice) => (
-              <PosRecordCard
-                key={invoice.id}
-                title={invoice.invoiceNo}
-                subtitle={invoice.customer.name}
-                trailing={
-                  <span className="text-sm font-semibold tabular-nums">
-                    {money(invoice.totalAmount)}
-                  </span>
-                }
-                fields={[
-                  { label: "Date", value: formatDate(invoice.date) },
-                  { label: "Payment", value: invoice.paymentType },
-                  { label: "Items", value: invoice.items.length },
-                ]}
-                actions={
-                  <>
-                    <Button size="sm" variant="outline" onClick={() => setSelectedInvoiceId(invoice.id)}>
-                      View
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => void downloadThaiInvoicePdf(invoice)}
-                    >
-                      PDF
-                    </Button>
-                  </>
-                }
-              />
-            ))}
-          </PosRecordCardList>
-
-          <div className="hidden md:block">
+          {isMobile ? (
+            <PosRecordCardList>
+              {rows.map((invoice) => (
+                <PosRecordCard
+                  key={invoice.id}
+                  title={invoice.invoiceNo}
+                  subtitle={invoice.customer.name}
+                  trailing={
+                    <span className="text-sm font-semibold tabular-nums">
+                      {money(invoice.totalAmount)}
+                    </span>
+                  }
+                  fields={[
+                    { label: "Date", value: formatDate(invoice.date) },
+                    { label: "Payment", value: invoice.paymentType },
+                    { label: "Items", value: invoice.items.length },
+                  ]}
+                  actions={
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => setSelectedInvoiceId(invoice.id)}>
+                        View
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => void downloadThaiInvoicePdf(invoice)}
+                      >
+                        PDF
+                      </Button>
+                    </>
+                  }
+                />
+              ))}
+            </PosRecordCardList>
+          ) : (
             <PosDataTable>
               <PosTable>
                 <PosTableHead>
@@ -247,7 +267,7 @@ export function InvoicesPage() {
                 </PosTableBody>
               </PosTable>
             </PosDataTable>
-          </div>
+          )}
 
           {data?.meta && (
             <PosPaginationFromMeta
@@ -275,7 +295,12 @@ function InvoiceDetailModal({
   invoiceId: string | null;
   onClose: () => void;
 }) {
+  const { toasts, showToast, dismiss } = usePosToast();
   const { data: invoice, isLoading, isError } = useThaiInvoice(invoiceId);
+  const addPaymentMutation = useAddThaiInvoicePayment();
+  const refundMutation = useRefundThaiInvoice();
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [refundOpen, setRefundOpen] = useState(false);
 
   if (!invoiceId) return null;
 
@@ -291,6 +316,8 @@ function InvoiceDetailModal({
         <ErrorState message="Unable to load invoice detail." />
       ) : (
         <div className="space-y-4">
+          <ThaiInvoiceSettlementSummary invoice={invoice} />
+
           <div className="grid gap-3 rounded-xl border border-border/70 bg-muted/10 p-4 text-sm md:grid-cols-2">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
@@ -304,7 +331,9 @@ function InvoiceDetailModal({
                 Invoice
               </p>
               <p className="mt-1 font-medium">{formatDate(invoice.date)}</p>
-              <p className="text-xs text-muted-foreground">{invoice.paymentType}</p>
+              <p className="text-xs text-muted-foreground">
+                {invoice.paymentType} / {invoice.paymentStatus ?? "PAID"}
+              </p>
             </div>
           </div>
 
@@ -359,6 +388,9 @@ function InvoiceDetailModal({
             </div>
           </div>
 
+          <ThaiInvoicePaymentHistory invoice={invoice} />
+          <ThaiInvoiceRefundHistory invoice={invoice} />
+
           {invoice.notes ? (
             <div className="rounded-xl border border-border/70 p-4 text-sm">
               <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
@@ -368,7 +400,17 @@ function InvoiceDetailModal({
             </div>
           ) : null}
 
-          <div className="flex justify-end gap-2 border-t border-border pt-4">
+          <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
+            {(invoice.balanceDue ?? 0) > 0 && (
+              <Button variant="secondary" onClick={() => setPaymentOpen(true)}>
+                Add payment
+              </Button>
+            )}
+            {getRefundableThaiItems(invoice).length > 0 && (
+              <Button variant="secondary" onClick={() => setRefundOpen(true)}>
+                Return
+              </Button>
+            )}
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
@@ -378,6 +420,49 @@ function InvoiceDetailModal({
           </div>
         </div>
       )}
+
+      {paymentOpen && invoice && (
+        <ThaiAddPaymentModal
+          invoice={invoice}
+          customerName={invoice.customer.name}
+          saving={addPaymentMutation.isPending}
+          onClose={() => setPaymentOpen(false)}
+          onSubmit={(payload) =>
+            addPaymentMutation.mutate(
+              { id: invoice.id, payload },
+              {
+                onSuccess: () => {
+                  showToast("success", "Payment recorded.");
+                  setPaymentOpen(false);
+                },
+                onError: () => showToast("error", "Unable to record payment."),
+              },
+            )
+          }
+        />
+      )}
+
+      {refundOpen && invoice && (
+        <ThaiRefundModal
+          invoice={invoice}
+          saving={refundMutation.isPending}
+          onClose={() => setRefundOpen(false)}
+          onSubmit={(payload) =>
+            refundMutation.mutate(
+              { id: invoice.id, payload },
+              {
+                onSuccess: () => {
+                  showToast("success", "Refund recorded.");
+                  setRefundOpen(false);
+                },
+                onError: () => showToast("error", "Unable to record refund."),
+              },
+            )
+          }
+        />
+      )}
+
+      <PosToaster toasts={toasts} onDismiss={dismiss} />
     </PosModal>
   );
 }

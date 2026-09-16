@@ -79,6 +79,15 @@ export const posModules: PosModule[] = [
     bubbleColor: "bg-cyan-400/10 dark:bg-cyan-400/15",
   },
   {
+    id: "outstanding",
+    label: "Outstanding",
+    path: "/customers/outstanding",
+    icon: Receipt,
+    iconBg: "bg-red-50 dark:bg-red-950/30",
+    iconColor: "text-red-600 dark:text-red-400",
+    bubbleColor: "bg-red-400/10 dark:bg-red-400/15",
+  },
+  {
     id: "expenses",
     label: "Expenses",
     path: "/expenses",

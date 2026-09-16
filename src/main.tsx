@@ -6,16 +6,13 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { store } from "@/redux/store";
 import { queryClient } from "@/lib/queryClient";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { AuthBootstrap } from "@/components/auth/AuthBootstrap";
 
-/* Fonts */
+/* Fonts — reduced weights for faster first paint */
 import "@fontsource/noto-sans/400.css";
-import "@fontsource/noto-sans/500.css";
 import "@fontsource/noto-sans/600.css";
-import "@fontsource/noto-sans/700.css";
 import "@fontsource/noto-sans-myanmar/400.css";
-import "@fontsource/noto-sans-myanmar/500.css";
 import "@fontsource/noto-sans-myanmar/600.css";
-import "@fontsource/noto-sans-myanmar/700.css";
 import "@fontsource-variable/inter/wght.css";
 
 import "./index.css";
@@ -27,7 +24,9 @@ createRoot(document.getElementById("root")!).render(
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
-            <App />
+            <AuthBootstrap>
+              <App />
+            </AuthBootstrap>
           </BrowserRouter>
         </QueryClientProvider>
       </Provider>
