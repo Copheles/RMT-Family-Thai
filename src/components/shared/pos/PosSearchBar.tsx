@@ -70,6 +70,7 @@ export function PosSearchBar({
       {!hideButton && (
         <Button
           type="button"
+          variant="outline"
           className="shrink-0 gap-2 px-4"
           onClick={() => handleSubmit()}
         >

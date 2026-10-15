@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader, EmptyState, LoadingState, ErrorState } from "@/components/shared/PageStates";
 import { PosPageShell } from "@/components/shared/pos/PosPageShell";
 import { PosSearchBar } from "@/components/shared/pos/PosSearchBar";
+import { PosToolbar, PosToolbarGroup } from "@/components/shared/pos/PosToolbar";
 import {
   PosDataTable,
   PosTable,
@@ -118,15 +119,20 @@ export function PackageListsPage() {
         }
       />
 
-      <div className="mb-4">
-        <PosSearchBar
-          value={searchInput}
-          onChange={setSearchInput}
-          onSubmit={submitSearch}
-          onClear={resetSearch}
-          placeholder="Search list no, consignee, invoice..."
-        />
-      </div>
+      <PosToolbar>
+        <PosToolbarGroup>
+          <div className="min-w-[220px] flex-1">
+            <PosSearchBar
+              value={searchInput}
+              onChange={setSearchInput}
+              onSubmit={submitSearch}
+              onClear={resetSearch}
+              placeholder="Search list no, consignee, invoice..."
+              className="max-w-none"
+            />
+          </div>
+        </PosToolbarGroup>
+      </PosToolbar>
 
       {isLoading ? (
         <LoadingState label="Loading packing lists..." />

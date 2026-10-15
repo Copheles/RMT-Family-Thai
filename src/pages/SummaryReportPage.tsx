@@ -15,7 +15,7 @@ import { PageHeader, LoadingState, ErrorState } from "@/components/shared/PageSt
 import { PosPageShell } from "@/components/shared/pos/PosPageShell";
 import { PosDatePicker } from "@/components/shared/pos/PosDatePicker";
 import { StatCard } from "@/components/shared/pos/StatCard";
-import { PosToolbar } from "@/components/shared/pos/PosToolbar";
+import { PosToolbar, PosToolbarGroup } from "@/components/shared/pos/PosToolbar";
 import { PaymentBar, SummaryRow } from "@/components/shared/pos/ReportHelpers";
 import { getThaiSummaryReport } from "@/features/thai/thai.api";
 import type { ThaiPaymentType } from "@/features/thai/thai.types";
@@ -72,12 +72,14 @@ export function SummaryReportPage() {
       />
 
       <PosToolbar>
-        <div className="max-w-xs">
-          <label className="mb-1 block text-xs font-medium text-muted-foreground">
-            Date
-          </label>
-          <PosDatePicker value={date} onChange={setDate} placeholder="Select date" />
-        </div>
+        <PosToolbarGroup>
+          <div className="w-full min-w-[140px] sm:w-[180px]">
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Date
+            </label>
+            <PosDatePicker value={date} onChange={setDate} placeholder="Select date" />
+          </div>
+        </PosToolbarGroup>
       </PosToolbar>
 
       {isLoading ? (

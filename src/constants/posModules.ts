@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
+  ClipboardList,
   History,
   Package,
   PieChart,
@@ -59,6 +60,15 @@ export const posModules: PosModule[] = [
     iconBg: "bg-orange-50 dark:bg-orange-950/30",
     iconColor: "text-orange-600 dark:text-orange-400",
     bubbleColor: "bg-orange-400/10 dark:bg-orange-400/15",
+  },
+  {
+    id: "purchases",
+    label: "Purchases",
+    path: "/purchases",
+    icon: ClipboardList,
+    iconBg: "bg-amber-50 dark:bg-amber-950/30",
+    iconColor: "text-amber-700 dark:text-amber-400",
+    bubbleColor: "bg-amber-400/10 dark:bg-amber-400/15",
   },
   {
     id: "vendors",

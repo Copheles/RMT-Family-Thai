@@ -6,6 +6,7 @@ import { PageHeader, EmptyState, LoadingState } from "@/components/shared/PageSt
 import { PosPageShell } from "@/components/shared/pos/PosPageShell";
 import { PosSummaryCards, PosSummaryCard } from "@/components/shared/pos/PosSummaryCards";
 import { PosSearchBar } from "@/components/shared/pos/PosSearchBar";
+import { PosToolbar, PosToolbarGroup } from "@/components/shared/pos/PosToolbar";
 import {
   PosDataTable,
   PosTable,
@@ -135,15 +136,20 @@ export function VendorsFlow() {
         <PosSummaryCard label="This page" value={vendors.length} />
       </PosSummaryCards>
 
-      <div className="mb-4">
-        <PosSearchBar
-          value={searchInput}
-          onChange={setSearchInput}
-          onSubmit={submitSearch}
-          onClear={resetSearch}
-          placeholder="Search name, phone, company..."
-        />
-      </div>
+      <PosToolbar>
+        <PosToolbarGroup>
+          <div className="min-w-[220px] flex-1">
+            <PosSearchBar
+              value={searchInput}
+              onChange={setSearchInput}
+              onSubmit={submitSearch}
+              onClear={resetSearch}
+              placeholder="Search name, phone, company..."
+              className="max-w-none"
+            />
+          </div>
+        </PosToolbarGroup>
+      </PosToolbar>
 
       {isLoading ? (
         <LoadingState label="Loading vendors..." />

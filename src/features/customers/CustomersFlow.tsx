@@ -7,6 +7,7 @@ import { PageHeader, EmptyState, LoadingState } from "@/components/shared/PageSt
 import { PosPageShell } from "@/components/shared/pos/PosPageShell";
 import { PosSummaryCards, PosSummaryCard } from "@/components/shared/pos/PosSummaryCards";
 import { PosSearchBar } from "@/components/shared/pos/PosSearchBar";
+import { PosToolbar, PosToolbarGroup, PosToolbarActions } from "@/components/shared/pos/PosToolbar";
 import {
   PosDataTable,
   PosTable,
@@ -192,44 +193,50 @@ export function CustomersFlow() {
         <PosSummaryCard label="On page" value={customers.length} />
       </PosSummaryCards>
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <PosSearchBar
-          value={searchInput}
-          onChange={setSearchInput}
-          onSubmit={submitSearch}
-          onClear={resetSearch}
-          placeholder="Search name, phone, address..."
-          hideButton
-        />
-        <div className="flex shrink-0 gap-1 rounded-xl border border-border/70 bg-muted/25 p-1">
-          <button
-            type="button"
-            onClick={() => setView("grid")}
-            className={cn(
-              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
-              view === "grid"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <Grid3x3 className="size-3.5" />
-            Grid
-          </button>
-          <button
-            type="button"
-            onClick={() => setView("list")}
-            className={cn(
-              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
-              view === "list"
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <List className="size-3.5" />
-            List
-          </button>
-        </div>
-      </div>
+      <PosToolbar>
+        <PosToolbarGroup className="min-w-0 flex-1">
+          <div className="min-w-[220px] flex-1">
+            <PosSearchBar
+              value={searchInput}
+              onChange={setSearchInput}
+              onSubmit={submitSearch}
+              onClear={resetSearch}
+              placeholder="Search name, phone, address..."
+              className="max-w-none"
+            />
+          </div>
+        </PosToolbarGroup>
+        <PosToolbarActions>
+          <div className="flex shrink-0 gap-1 rounded-lg border border-border p-1">
+            <button
+              type="button"
+              onClick={() => setView("grid")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
+                view === "grid"
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Grid3x3 className="size-3.5" />
+              Grid
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("list")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
+                view === "list"
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <List className="size-3.5" />
+              List
+            </button>
+          </div>
+        </PosToolbarActions>
+      </PosToolbar>
 
       <div
         className={cn(

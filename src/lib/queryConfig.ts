@@ -6,6 +6,7 @@ export const PAGE_SIZE = {
   inventoryProducts: 25,
   vendors: 20,
   customers: 10,
+  batches: 10,
 } as const;
 
 export const PAGE_SIZE_OPTIONS = {
@@ -16,4 +17,5 @@ export const PAGE_SIZE_OPTIONS = {
   inventoryProducts: [25, 50] as const,
   vendors: [10, 20, 50] as const,
   customers: [10, 20, 50] as const,
+  batches: [10, 20, 50] as const,
 } as const;

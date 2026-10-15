@@ -15,3 +15,10 @@ export async function me(): Promise<AuthUser> {
 export async function logout(): Promise<void> {
   await axiosClient.post("/auth/logout");
 }
+
+export async function changePassword(payload: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<void> {
+  await axiosClient.patch("/auth/password", payload);
+}

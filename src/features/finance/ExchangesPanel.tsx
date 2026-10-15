@@ -25,6 +25,7 @@ import { PosDatePicker } from "@/components/shared/pos/PosDatePicker";
 import { PosModal } from "@/components/shared/pos/PosModal";
 import { DeleteConfirmModal } from "@/components/shared/pos/DeleteConfirmModal";
 import { PosSearchBar } from "@/components/shared/pos/PosSearchBar";
+import { PosSelect } from "@/components/shared/pos/PosSelect";
 import { useAppliedSearch } from "@/hooks/useAppliedSearch";
 import { useIsMobileLayout } from "@/hooks/useMediaQuery";
 import {
@@ -160,29 +161,30 @@ export function ExchangesPanel() {
       <PosToolbar>
         <PosToolbarGroup>
           <div className="min-w-[220px] flex-1">
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Search</label>
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Search
+            </label>
             <PosSearchBar
               value={searchInput}
               onChange={setSearchInput}
               onSubmit={submitSearch}
               onClear={resetSearch}
               placeholder="Name or sender/receiver..."
-              hideButton
+              className="max-w-none"
             />
           </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Type</label>
-            <Select
+          <div className="w-full min-w-[140px] sm:w-[160px]">
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Type
+            </label>
+            <PosSelect
               value={typeFilter}
-              onChange={(e) => {
-                setTypeFilter(e.target.value as (typeof EXCHANGE_TYPE_FILTERS)[number]);
-              }}
-            >
-              <option value="ALL">All types</option>
-              {exchangeTypes.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </Select>
+              onChange={setTypeFilter}
+              options={[
+                { value: "ALL", label: "All types" },
+                ...exchangeTypes.map((t) => ({ value: t, label: t })),
+              ]}
+            />
           </div>
         </PosToolbarGroup>
         <PosToolbarActions>

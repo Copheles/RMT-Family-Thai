@@ -59,7 +59,7 @@ function outstandingKeyOf(filters: ThaiOutstandingListFilters): string {
   return JSON.stringify(filters);
 }
 
-export function useThaiOutstandingInvoices(filters: ThaiOutstandingListFilters) {
+export function useThaiOutstandingInvoices(filters: ThaiOutstandingListFilters, enabled = true) {
   return useQuery({
     queryKey: ["thai", "invoices", "outstanding", outstandingKeyOf(filters)],
     queryFn: () =>
@@ -68,6 +68,7 @@ export function useThaiOutstandingInvoices(filters: ThaiOutstandingListFilters) 
         limit: filters.limit,
         search: filters.search,
       }),
+    enabled,
   });
 }
 

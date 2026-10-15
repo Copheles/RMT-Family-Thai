@@ -147,18 +147,22 @@ export function ExpensesPanel() {
       <PosToolbar>
         <PosToolbarGroup>
           <div className="min-w-[220px] flex-1">
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Search</label>
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Search
+            </label>
             <PosSearchBar
               value={searchInput}
               onChange={setSearchInput}
               onSubmit={submitSearch}
               onClear={resetSearch}
               placeholder="Expense name..."
-              hideButton
+              className="max-w-none"
             />
           </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">From</label>
+          <div className="w-full min-w-[140px] sm:w-[160px]">
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              From
+            </label>
             <PosDatePicker
               value={dateFrom}
               onChange={(next) => {
@@ -167,8 +171,10 @@ export function ExpensesPanel() {
               placeholder="From date"
             />
           </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">To</label>
+          <div className="w-full min-w-[140px] sm:w-[160px]">
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              To
+            </label>
             <PosDatePicker
               value={dateTo}
               onChange={(next) => {

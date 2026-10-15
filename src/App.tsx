@@ -25,6 +25,9 @@ const InvoicesPage = lazy(() =>
 const InventoryPage = lazy(() =>
   import("@/pages/InventoryPage").then((m) => ({ default: m.InventoryPage })),
 );
+const PurchasesPage = lazy(() =>
+  import("@/pages/PurchasesPage").then((m) => ({ default: m.PurchasesPage })),
+);
 const VendorsPage = lazy(() =>
   import("@/pages/VendorsPage").then((m) => ({ default: m.VendorsPage })),
 );
@@ -86,6 +89,7 @@ export default function App() {
             <Route path="/package-lists/*" element={<PackageListsRedirect />} />
             <Route path="/invoices" element={<InvoicesPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
+            <Route path="/purchases" element={<PurchasesPage />} />
             <Route path="/vendors" element={<VendorsPage />} />
             <Route path="/finance" element={<Navigate to="/expenses" replace />} />
             <Route path="/expenses" element={<ExpensesPage />} />

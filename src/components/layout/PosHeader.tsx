@@ -102,7 +102,7 @@ export function PosHeader() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const showBreadcrumb = location.pathname !== "/dashboard";
-  const showSettings = user?.role === "super_admin";
+  const showSettings = user?.role === "super_admin" || user?.role === "thai";
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {

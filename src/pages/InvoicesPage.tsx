@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
 import { PageHeader, EmptyState, LoadingState, ErrorState } from "@/components/shared/PageStates";
 import { PosPageShell } from "@/components/shared/pos/PosPageShell";
 import { PosToolbar, PosToolbarGroup } from "@/components/shared/pos/PosToolbar";
@@ -18,6 +17,7 @@ import { PosRecordCard, PosRecordCardList } from "@/components/shared/pos/PosRec
 import { PosPaginationFromMeta } from "@/components/shared/pos/PosPagination";
 import { PosModal } from "@/components/shared/pos/PosModal";
 import { PosSearchBar } from "@/components/shared/pos/PosSearchBar";
+import { PosSelect } from "@/components/shared/pos/PosSelect";
 import { downloadThaiInvoicePdf } from "@/features/invoices/invoice.pdf";
 import {
   useAddThaiInvoicePayment,
@@ -51,6 +51,9 @@ import {
   useUrlStringParam,
 } from "@/hooks/useUrlQuery";
 
+const FILTER_LABEL =
+  "mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground";
+
 const invoiceSortFields: NonNullable<ThaiInvoiceListFilters["sortBy"]>[] = [
   "createdAt",
   "invoiceNo",
@@ -66,6 +69,13 @@ function money(value: number): string {
 
 function paymentTypeLabel(value: ThaiPaymentTypeFilter): string {
   return value === "ALL" ? "All payments" : value;
+}
+
+function sortByLabel(field: string): string {
+  if (field === "createdAt") return "Created";
+  if (field === "date") return "Invoice Date";
+  if (field === "invoiceNo") return "Invoice No";
+  return "Total Amount";
 }
 
 export function InvoicesPage() {
@@ -120,7 +130,7 @@ export function InvoicesPage() {
       <PageHeader title="Invoices" description="Thai invoice history." />
 
       <PosToolbar>
-        <PosToolbarGroup className="w-full flex-col items-stretch gap-3 lg:flex-row lg:items-end">
+        <PosToolbarGroup>
           <div className="min-w-[220px] flex-1">
             <PosSearchBar
               value={searchInput}
@@ -128,55 +138,41 @@ export function InvoicesPage() {
               onSubmit={submitSearch}
               onClear={resetSearch}
               placeholder="Invoice no, customer, notes..."
+              className="max-w-none"
             />
           </div>
-          <div className="min-w-[160px]">
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Sort by</label>
-            <Select
+          <div className="w-full min-w-[140px] sm:w-[140px]">
+            <label className={FILTER_LABEL}>Sort by</label>
+            <PosSelect
               value={sortBy}
-              onChange={(event) => {
-                setSortBy(event.target.value);
-              }}
-            >
-              {invoiceSortFields.map((field) => (
-                <option key={field} value={field}>
-                  {field === "createdAt"
-                    ? "Created"
-                    : field === "date"
-                      ? "Invoice Date"
-                      : field === "invoiceNo"
-                        ? "Invoice No"
-                        : "Total Amount"}
-                </option>
-              ))}
-            </Select>
+              onChange={setSortBy}
+              options={invoiceSortFields.map((field) => ({
+                value: field,
+                label: sortByLabel(field),
+              }))}
+            />
           </div>
-          <div className="min-w-[120px]">
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Order</label>
-            <Select
+          <div className="w-full min-w-[140px] sm:w-[140px]">
+            <label className={FILTER_LABEL}>Order</label>
+            <PosSelect
               value={sortOrder}
-              onChange={(event) => {
-                setSortOrder(event.target.value as "asc" | "desc");
-              }}
-            >
-              <option value="desc">Newest</option>
-              <option value="asc">Oldest</option>
-            </Select>
+              onChange={setSortOrder}
+              options={[
+                { value: "desc", label: "Newest" },
+                { value: "asc", label: "Oldest" },
+              ]}
+            />
           </div>
-          <div className="min-w-[160px]">
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Payment</label>
-            <Select
+          <div className="w-full min-w-[140px] sm:w-[160px]">
+            <label className={FILTER_LABEL}>Payment</label>
+            <PosSelect
               value={paymentType}
-              onChange={(event) => {
-                setPaymentType(event.target.value as ThaiPaymentTypeFilter);
-              }}
-            >
-              {THAI_PAYMENT_TYPE_FILTERS.map((value) => (
-                <option key={value} value={value}>
-                  {paymentTypeLabel(value)}
-                </option>
-              ))}
-            </Select>
+              onChange={setPaymentType}
+              options={THAI_PAYMENT_TYPE_FILTERS.map((value) => ({
+                value,
+                label: paymentTypeLabel(value),
+              }))}
+            />
           </div>
         </PosToolbarGroup>
       </PosToolbar>

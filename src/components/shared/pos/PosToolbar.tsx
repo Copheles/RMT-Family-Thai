@@ -10,7 +10,7 @@ export function PosToolbar({
   return (
     <div
       className={cn(
-        "mb-4 flex flex-col gap-3 rounded-xl border border-border/70 bg-card p-4 shadow-card sm:p-5 lg:flex-row lg:items-end lg:justify-between",
+        "mb-4 flex flex-col gap-3 rounded-xl border border-border bg-transparent p-3 sm:p-4 lg:flex-row lg:items-end lg:justify-between",
         className,
       )}
     >
@@ -27,7 +27,7 @@ export function PosToolbarGroup({
   className?: string;
 }) {
   return (
-    <div className={cn("grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-4", className)}>
+    <div className={cn("flex w-full flex-wrap items-end gap-3", className)}>
       {children}
     </div>
   );

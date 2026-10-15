@@ -1,4 +1,4 @@
-import { Select } from "@/components/ui/select";
+import { PosSelect } from "@/components/shared/pos/PosSelect";
 import { cn } from "@/lib/utils";
 
 export function PosFilterSelect<T extends string>({
@@ -17,17 +17,15 @@ export function PosFilterSelect<T extends string>({
   className?: string;
 }) {
   return (
-    <Select
+    <PosSelect
       aria-label={ariaLabel}
       value={value}
-      onChange={(event) => onChange(event.target.value as T)}
-      className={cn("h-9 w-full sm:w-52", className)}
-    >
-      {options.map((option) => (
-        <option key={option} value={option}>
-          {getLabel(option)}
-        </option>
-      ))}
-    </Select>
+      onChange={onChange}
+      options={options.map((option) => ({
+        value: option,
+        label: getLabel(option),
+      }))}
+      className={cn("sm:w-52", className)}
+    />
   );
 }

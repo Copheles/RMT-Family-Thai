@@ -62,8 +62,8 @@ export function SaleReportPage() {
 
       <PosToolbar>
         <PosToolbarGroup>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+          <div className="w-full min-w-[140px] sm:w-[180px]">
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
               From
             </label>
             <PosDatePicker
@@ -72,8 +72,8 @@ export function SaleReportPage() {
               placeholder="From date"
             />
           </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+          <div className="w-full min-w-[140px] sm:w-[180px]">
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
               To
             </label>
             <PosDatePicker

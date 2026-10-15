@@ -26,7 +26,6 @@ function parseValue(value: string, mode: PosDatePickerMode): Date | undefined {
     const parsed = parse(value, "yyyy-MM-dd", new Date());
     return isValid(parsed) ? parsed : undefined;
   }
-  // datetime-local style: yyyy-MM-ddTHH:mm
   const normalized = value.length === 16 ? `${value}:00` : value;
   const parsed = parseISO(normalized);
   return isValid(parsed) ? parsed : undefined;
@@ -53,6 +52,9 @@ function extractTime(value: string): string {
   return match?.[2] ?? format(new Date(), "HH:mm");
 }
 
+const navButtonClass =
+  "absolute top-0 z-10 inline-flex size-8 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40";
+
 export function PosDatePicker({
   value,
   onChange,
@@ -64,6 +66,7 @@ export function PosDatePicker({
 }: PosDatePickerProps) {
   const [open, setOpen] = useState(false);
   const selected = useMemo(() => parseValue(value, mode), [value, mode]);
+  const [month, setMonth] = useState<Date>(() => selected ?? new Date());
   const [draftTime, setDraftTime] = useState(() =>
     mode === "datetime" ? extractTime(value || "") : "00:00",
   );
@@ -87,8 +90,11 @@ export function PosDatePicker({
   }
 
   function handleOpenChange(next: boolean) {
-    if (next && mode === "datetime") {
-      setDraftTime(extractTime(value || ""));
+    if (next) {
+      setMonth(selected ?? new Date());
+      if (mode === "datetime") {
+        setDraftTime(extractTime(value || ""));
+      }
     }
     setOpen(next);
   }
@@ -116,29 +122,30 @@ export function PosDatePicker({
         <Popover.Content
           align="start"
           sideOffset={6}
-          className="z-50 w-auto rounded-xl border border-border/70 bg-card p-3 text-card-foreground shadow-lg outline-none"
+          className="z-100 w-auto rounded-xl border border-border/70 bg-card p-3 text-card-foreground shadow-lg outline-none"
+          onOpenAutoFocus={(event) => event.preventDefault()}
         >
           <DayPicker
             mode="single"
             selected={selected}
             onSelect={handleSelect}
-            defaultMonth={selected}
+            month={month}
+            onMonthChange={setMonth}
+            navLayout="around"
             showOutsideDays
             className="rdp-root"
             classNames={{
               root: "text-sm",
               months: "flex flex-col",
-              month: "space-y-3",
-              month_caption: "relative flex items-center justify-center px-8 pb-1",
-              caption_label: "text-sm font-semibold text-foreground",
-              nav: "absolute inset-x-0 top-0 flex items-center justify-between px-1",
-              button_previous:
-                "inline-flex size-8 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
-              button_next:
-                "inline-flex size-8 items-center justify-center rounded-lg border border-border/70 bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
+              month: "relative space-y-3",
+              month_caption: "flex h-8 items-center justify-center px-10",
+              caption_label: "pointer-events-none text-sm font-semibold text-foreground",
+              button_previous: cn(navButtonClass, "left-0"),
+              button_next: cn(navButtonClass, "right-0"),
               month_grid: "w-full border-collapse",
               weekdays: "flex",
-              weekday: "w-9 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground",
+              weekday:
+                "w-9 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground",
               week: "mt-1 flex w-full",
               day: "relative p-0 text-center",
               day_button:
@@ -150,11 +157,11 @@ export function PosDatePicker({
               disabled: "[&>button]:opacity-40",
             }}
             components={{
-              Chevron: ({ orientation }) =>
+              Chevron: ({ orientation, className: chevronClassName, ...props }) =>
                 orientation === "left" ? (
-                  <ChevronLeft className="size-4" />
+                  <ChevronLeft className={cn("size-4", chevronClassName)} {...props} />
                 ) : (
-                  <ChevronRight className="size-4" />
+                  <ChevronRight className={cn("size-4", chevronClassName)} {...props} />
                 ),
             }}
           />

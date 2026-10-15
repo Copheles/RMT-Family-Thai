@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,8 +9,14 @@ import { PageHeader, EmptyState, LoadingState } from "@/components/shared/PageSt
 import { PosPageShell } from "@/components/shared/pos/PosPageShell";
 import { PosModal } from "@/components/shared/pos/PosModal";
 import { PosSearchBar } from "@/components/shared/pos/PosSearchBar";
+import { PosToolbar, PosToolbarGroup } from "@/components/shared/pos/PosToolbar";
 import { PosFilterTabs } from "@/components/shared/pos/PosFilterTabs";
 import { PosPaginationFromMeta } from "@/components/shared/pos/PosPagination";
+import { PosSummaryCards, PosSummaryCard } from "@/components/shared/pos/PosSummaryCards";
+import { useInventorySummary } from "@/features/batches/batch.hooks";
+import { ThaiRestockModal } from "@/features/inventory/ThaiRestockModal";
+import type { ThaiProduct } from "@/features/thai/thai.types";
+import { formatMoneyShort } from "@/lib/format";
 import { CategoryCombobox } from "@/components/shared/pos/CategoryCombobox";
 import {
   createThaiCategory,
@@ -67,6 +74,10 @@ export function InventoryPage() {
   const [form, setForm] = useState(emptyProduct);
   const [error, setError] = useState("");
   const [newCat, setNewCat] = useState("");
+  const [restockTarget, setRestockTarget] = useState<ThaiProduct | null>(null);
+
+  const summaryQuery = useInventorySummary();
+  const summary = summaryQuery.data;
 
   const {
     searchInput,
@@ -136,50 +147,77 @@ export function InventoryPage() {
     <PosPageShell>
       <PageHeader
         title="Inventory"
-        description="Thai products with simple stock quantity (no FIFO)."
+        description="Products, restock (paid or on credit), and stock totals."
         action={
-          <Button
-            className="gap-2"
-            onClick={() => {
-              setEditId(null);
-              setForm(emptyProduct);
-              setOpen(true);
-            }}
-          >
-            <Plus className="size-4" /> Add product
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/purchases">Purchases</Link>
+            </Button>
+            <Button
+              className="gap-2"
+              onClick={() => {
+                setEditId(null);
+                setForm(emptyProduct);
+                setOpen(true);
+              }}
+            >
+              <Plus className="size-4" /> Add product
+            </Button>
+          </div>
         }
       />
 
-      <div className="mb-4 space-y-3">
-        <PosSearchBar
-          value={searchInput}
-          onChange={setSearchInput}
-          onSubmit={submitSearch}
-          onClear={resetSearch}
-          placeholder="Search name, code, or barcode..."
-          className="max-w-none"
+      <PosSummaryCards className="mb-4 lg:grid-cols-3">
+        <PosSummaryCard label="Products" value={summary?.productCount ?? "—"} />
+        <PosSummaryCard label="Total stock qty" value={summary?.totalStockQty ?? "—"} />
+        <PosSummaryCard
+          label="Stock value (at cost)"
+          value={
+            summary ? formatMoneyShort(summary.stockValue) : "—"
+          }
+          accent
         />
+      </PosSummaryCards>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-          <CategoryCombobox
-            size="sm"
-            className="w-full sm:max-w-xs"
-            options={categories}
-            value={categoryId}
-            placeholder="All categories"
-            onChange={(next) => setCategoryId(next)}
-          />
-
-          <PosFilterTabs
-            value={stockFilter}
-            options={STOCK_STATUS_FILTERS}
-            getLabel={stockFilterLabel}
-            onChange={setStockFilter}
-            className="sm:ml-auto"
-          />
-        </div>
-      </div>
+      <PosToolbar>
+        <PosToolbarGroup>
+          <div className="min-w-[220px] w-full flex-1 basis-full lg:basis-auto">
+            <PosSearchBar
+              value={searchInput}
+              onChange={setSearchInput}
+              onSubmit={submitSearch}
+              onClear={resetSearch}
+              placeholder="Search name, code, or barcode..."
+              className="max-w-none"
+            />
+          </div>
+          <div className="w-full min-w-[160px] sm:max-w-xs">
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Category
+            </label>
+            <CategoryCombobox
+              size="sm"
+              className="w-full"
+              options={categories}
+              value={categoryId}
+              placeholder="All categories"
+              onChange={(next) => setCategoryId(next)}
+            />
+          </div>
+          <div className="w-full sm:ml-auto sm:w-auto">
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              Stock
+            </label>
+            <PosFilterTabs
+              value={stockFilter}
+              options={STOCK_STATUS_FILTERS}
+              getLabel={stockFilterLabel}
+              onChange={setStockFilter}
+              className="w-full sm:w-auto"
+            />
+          </div>
+        </PosToolbarGroup>
+      </PosToolbar>
 
       {productsQuery.isLoading ? (
         <LoadingState label="Loading products..." />
@@ -209,6 +247,9 @@ export function InventoryPage() {
                     <td className="px-3 py-2 tabular-nums">{p.stockQty}</td>
                     <td className="px-3 py-2">
                       <div className="flex gap-1">
+                        <Button size="sm" variant="secondary" onClick={() => setRestockTarget(p)}>
+                          Restock
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
@@ -257,6 +298,14 @@ export function InventoryPage() {
           )}
         </>
       )}
+
+      {restockTarget ? (
+        <ThaiRestockModal
+          productId={restockTarget.id}
+          productName={restockTarget.name}
+          onClose={() => setRestockTarget(null)}
+        />
+      ) : null}
 
       {open && (
         <PosModal title={editId ? "Edit product" : "Create product"} onClose={() => setOpen(false)} wide>
