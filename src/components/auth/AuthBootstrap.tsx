@@ -10,6 +10,7 @@ function canUseThaiApp(role: string, branch?: string): boolean {
   return role === "super_admin" || (role === "thai" && branch === "THAI");
 }
 
+
 export function AuthBootstrap({ children }: { children: ReactNode }) {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
